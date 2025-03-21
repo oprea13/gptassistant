@@ -1,0 +1,7 @@
+parameters:
+  gptassistant_const:
+    enable_posting: true # Permite botului să creeze postări
+    enable_replies: true # Permite botului să răspundă la mesaje
+    enable_moderation: false # Permite botului să modereze (dacă e cazul, viitor feature)
+    max_reply_length: 500 # Lungimea maximă a răspunsului generat de GPT
+    default_temperature: 0.7 # Nivelul de creativitate al GPT

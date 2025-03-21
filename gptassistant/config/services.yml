@@ -1,0 +1,36 @@
+imports:
+    - { resource: gptassistant_const.yml }
+
+services:
+    iws.gptassistant.assistant:
+        class: iws\gptassistant\core\assistant
+        arguments:
+            - '@cache'
+            - '@dbal.conn'
+            - '@config'
+            - '@user'
+            - '@language'
+            - '@template'
+            - '%gptassistant_const%'
+
+    iws.gptassistant.controller.acp:
+        class: iws\gptassistant\controller\acp_controller
+        arguments:
+            - '@config'
+            - '@language'
+            - '@log'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@dbal.conn'
+
+    iws.gptassistant.listener:
+        class: iws\gptassistant\event\main_listener
+        arguments:
+            - '@config'
+            - '@language'
+            - '@template'
+            - '@user'
+            - '@iws.gptassistant.assistant'
+        tags:
+            - { name: event.listener }

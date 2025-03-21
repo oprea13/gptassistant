@@ -1,0 +1,168 @@
+{% include 'overall_header.html' %}
+
+<h1>{{ lang('ACP_GPTASSISTANT_TITLE') }}</h1>
+
+{% if S_ERROR %}
+    <div class="errorbox">
+        <h3>{{ lang('WARNING') }}</h3>
+        <p>{{ ERROR_MSG }}</p>
+    </div>
+{% endif %}
+
+<form id="iws_gptassistant_acp" name="iws_gptassistant_acp" method="post" action="{{ U_ACTION }}">
+
+    <!-- Setari generale -->
+    <fieldset>
+        <legend>{{ lang('GPT_ASSISTANT_SETTINGS') }}</legend>
+
+        <!-- Enable/Disable GPT Assistant -->
+        <dl>
+            <dt><label for="gptassistant_active">{{ lang('ACP_GPTASSISTANT_ACTIVE') ~ lang('COLON') }}</label></dt>
+            <dd>
+                <label><input type="radio" class="radio" name="gptassistant_active" value="1"{% if GPTASSISTANT_ACTIVE %} checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+                <label><input type="radio" class="radio" name="gptassistant_active" value="0"{% if not GPTASSISTANT_ACTIVE %} checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+            </dd>
+        </dl>
+
+        <!-- OpenAI API Key -->
+        <dl>
+            <dt><label for="gptassistant_api_key">{{ lang('ACP_GPTASSISTANT_API_KEY') ~ lang('COLON') }}</label><br>
+                <span>{{ lang('ACP_GPTASSISTANT_API_KEY_EXPLAIN') }}</span>
+            </dt>
+            <dd>
+                <input type="text" name="gptassistant_api_key" id="gptassistant_api_key" value="{{ GPTASSISTANT_API_KEY }}" size="50" />
+                <p class="small"><strong>{{ lang('ACP_GPTASSISTANT_API_INFO') }}</strong>: <a href="https://platform.openai.com/signup/" target="_blank">{{ lang('ACP_GPTASSISTANT_API_GET') }}</a></p>
+                <p class="small" style="color: green;">{{ lang('ACP_GPTASSISTANT_PRO_RECOMMENDATION') }}</p>
+            </dd>
+        </dl>
+
+        <!-- GPT Model Selection -->
+        <dl>
+            <dt><label for="gptassistant_model">{{ lang('ACP_GPTASSISTANT_MODEL') ~ lang('COLON') }}</label><br>
+                <span>{{ lang('ACP_GPTASSISTANT_MODEL_EXPLAIN') }}</span>
+            </dt>
+            <dd>
+                <select name="gptassistant_model" id="gptassistant_model" onchange="updateModelDescription()">
+					<option value="gpt-4o-mini" data-desc="{{ lang('GPT_MODEL_DESC_gpt-4o-mini') }}"{% if GPTASSISTANT_MODEL == "gpt-4o-mini" %} selected{% endif %}>GPT-4o mini</option>
+					<option value="gpt-4o" data-desc="{{ lang('GPT_MODEL_DESC_gpt-4o') }}"{% if GPTASSISTANT_MODEL == "gpt-4o" %} selected{% endif %}>GPT-4o</option>
+					<option value="gpt-4.5" data-desc="{{ lang('GPT_MODEL_DESC_gpt-4.5') }}"{% if GPTASSISTANT_MODEL == "gpt-4.5" %} selected{% endif %}>GPT-4.5</option>
+					<option value="o3-mini" data-desc="{{ lang('GPT_MODEL_DESC_o3-mini') }}"{% if GPTASSISTANT_MODEL == "o3-mini" %} selected{% endif %}>o3-mini</option>
+					<option value="o3-mini-high" data-desc="{{ lang('GPT_MODEL_DESC_o3-mini-high') }}"{% if GPTASSISTANT_MODEL == "o3-mini-high" %} selected{% endif %}>o3-mini-high</option>
+				</select>
+				<p class="small" id="model_description">{{ lang('GPT_MODEL_DESC_' ~ GPTASSISTANT_MODEL) }}</p>
+            </dd>
+        </dl>
+
+        <!-- GPT Assistant User -->
+        <dl>
+            <dt><label for="gptassistant_user">{{ lang('ACP_GPTASSISTANT_USER') ~ lang('COLON') }}</label><br>
+                <span>{{ lang('ACP_GPTASSISTANT_USER_EXPLAIN') }}</span>
+            </dt>
+            <dd>
+                <select name="gptassistant_user" id="gptassistant_user">
+                    {% for user_id, username in GPTASSISTANT_USERS %}
+                        <option value="{{ user_id }}"{% if GPTASSISTANT_USER == user_id %} selected{% endif %}>{{ username }}</option>
+                    {% endfor %}
+                </select>
+            </dd>
+        </dl>
+
+        <!-- Temperature (Creativity) -->
+        <dl>
+            <dt><label for="gptassistant_temperature">{{ lang('ACP_GPTASSISTANT_TEMPERATURE') ~ lang('COLON') }}</label><br>
+                <span>{{ lang('ACP_GPTASSISTANT_TEMPERATURE_EXPLAIN') }}</span>
+            </dt>
+            <dd><input type="number" name="gptassistant_temperature" id="gptassistant_temperature" min="0.0" max="1.0" step="0.1" value="{{ GPTASSISTANT_TEMPERATURE }}" /></dd>
+        </dl>
+
+        <!-- Maximum Response Length -->
+        <dl>
+            <dt><label for="gptassistant_max_tokens">{{ lang('ACP_GPTASSISTANT_MAX_TOKENS') ~ lang('COLON') }}</label><br>
+                <span>{{ lang('ACP_GPTASSISTANT_MAX_TOKENS_EXPLAIN') }}</span>
+            </dt>
+            <dd><input type="number" name="gptassistant_max_tokens" id="gptassistant_max_tokens" min="50" max="1000" value="{{ GPTASSISTANT_MAX_TOKENS }}" /></dd>
+        </dl>
+
+    </fieldset>
+
+    <!-- Setari activitate -->
+    <fieldset>
+        <legend>{{ lang('SETARI_ACTIVITATE') }}</legend>
+
+        <!-- Limita postari pe zi -->
+        <dl>
+            <dt><label for="gptassistant_activity_limit">{{ lang('ACP_GPTASSISTANT_ACTIVITY_LIMIT') }}</label></dt>
+            <dd>
+                <input type="number" name="gptassistant_activity_limit" value="{{ GPTASSISTANT_ACTIVITY_LIMIT }}" min="1" />
+            </dd>
+            <dd>{{ lang('ACP_GPTASSISTANT_ACTIVITY_LIMIT_DESC') }}</dd>
+        </dl>
+
+        <!-- Frecventa postari pe zi (minute) -->
+        <dl>
+            <dt><label for="gptassistant_activity_interval">{{ lang('ACP_GPTASSISTANT_ACTIVITY_INTERVAL') }}</label></dt>
+            <dd>
+                <input type="number" name="gptassistant_activity_interval" value="{{ GPTASSISTANT_ACTIVITY_INTERVAL }}" min="1" />
+            </dd>
+            <dd>{{ lang('ACP_GPTASSISTANT_ACTIVITY_INTERVAL_DESC') }}</dd>
+        </dl>
+
+        <!-- Forumuri selectabile in care sa posteze GPT Assistant -->
+        <dl>
+            <dt><label for="gptassistant_forums">{{ lang('ACP_GPTASSISTANT_ACTIVITY_FORUMS') }}:</label></dt>
+            <dd>
+                <select name="gptassistant_forums[]" id="gptassistant_forums" multiple="multiple" size="5">
+                    <!-- Loop through all forums and make them selectable -->
+                    {% for forum_id, forum_name in GPTASSISTANT_FORUMS %}
+                        <option value="{{ forum_id }}" {% if forum_id in GPTASSISTANT_SELECTED_FORUMS %}selected="selected"{% endif %}>
+                            {{ forum_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <span>{{ lang('ACP_GPTASSISTANT_ACTIVITY_FORUMS_DESC') }}</span>
+            </dd>
+        </dl>
+
+        <!-- Activare Tag-uri pentru topicuri -->
+        {% if topictags_extension_active %}
+        <dl>
+            <dt><label for="gptassistant_activity_enable_tags">{{ lang('ACP_GPTASSISTANT_ACTIVITY_ENABLE_TAGS') }}</label></dt>
+            <dd>
+                <label><input type="radio" name="gptassistant_activity_enable_tags" value="1" {% if GPTASSISTANT_ACTIVITY_ENABLE_TAGS %}checked{% endif %} /> {{ lang('YES') }}</label>
+                <label><input type="radio" name="gptassistant_activity_enable_tags" value="0" {% if not GPTASSISTANT_ACTIVITY_ENABLE_TAGS %}checked{% endif %} /> {{ lang('NO') }}</label>
+            </dd>
+            <dd>{{ lang('ACP_GPTASSISTANT_ACTIVITY_ENABLE_TAGS_DESC') }}</dd>
+        </dl>
+        {% endif %}
+
+        <!-- Setare activare/dezactivare GPT Assistant -->
+        <dl>
+            <dt><label for="gptassistant_activity_enabled">{{ lang('ACP_GPTASSISTANT_ACTIVITY_ENABLED') }}</label></dt>
+            <dd>
+                <label><input type="radio" name="gptassistant_activity_enabled" value="1" {% if GPTASSISTANT_ACTIVITY_ENABLED %}checked{% endif %} /> {{ lang('YES') }}</label>
+                <label><input type="radio" name="gptassistant_activity_enabled" value="0" {% if not GPTASSISTANT_ACTIVITY_ENABLED %}checked{% endif %} /> {{ lang('NO') }}</label>
+            </dd>
+            <dd>{{ lang('ACP_GPTASSISTANT_ACTIVITY_ENABLED_DESC') }}</dd>
+        </dl>
+
+    </fieldset>
+
+    <fieldset class="submit-buttons">
+        <input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />&nbsp;
+        <input class="button2" type="reset" id="reset" name="reset" value="{{ lang('RESET') }}" />
+        {{ S_FORM_TOKEN }}
+    </fieldset>
+
+</form>
+
+<script>
+    function updateModelDescription() {
+        var modelSelect = document.getElementById("gptassistant_model");
+        var selectedOption = modelSelect.options[modelSelect.selectedIndex];
+        var descriptionElement = document.getElementById("model_description");
+
+        descriptionElement.innerHTML = selectedOption.getAttribute("data-desc");
+    }
+</script>
+
+{% include 'overall_footer.html' %}
